@@ -36,7 +36,9 @@ class DiscardableBehavior extends Behavior
     public function findDiscarded(Query $query, array $options)
     {
         return $query
-            ->where([$this->_getFieldExpression() . ' IS' => null]);
+            ->where(
+                [$this->_table->getAlias() . '.' . $this->_getFieldExpression() . ' IS NOT' => null]
+            );
     }
 
     /**
@@ -47,7 +49,9 @@ class DiscardableBehavior extends Behavior
     public function findKept(Query $query, array $options)
     {
         return $query
-            ->where([$this->_getFieldExpression() . ' IS NOT' => null]);
+            ->where(
+                [$this->_table->getAlias() . '.' . $this->_getFieldExpression() . ' IS' => null]
+            );
     }
 
     /**
