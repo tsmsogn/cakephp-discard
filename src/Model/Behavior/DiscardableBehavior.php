@@ -11,14 +11,13 @@ use Cake\ORM\Query;
  */
 class DiscardableBehavior extends Behavior
 {
-
     /**
      * Default configuration.
      *
      * @var array
      */
     protected $_defaultConfig = [
-        'field' => 'deleted_at'
+        'field' => 'deleted',
     ];
 
     public function initialize(array $config)
