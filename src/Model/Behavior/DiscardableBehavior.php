@@ -5,6 +5,7 @@ use Cake\Datasource\EntityInterface;
 use Cake\I18n\Time;
 use Cake\ORM\Behavior;
 use Cake\ORM\Query;
+use Cake\Utility\Hash;
 
 /**
  * Discardable behavior
@@ -36,7 +37,7 @@ class DiscardableBehavior extends Behavior
     {
         return $query
             ->where(
-                [$this->_table->getAlias() . '.' . $this->_getFieldExpression() . ' IS NOT' => null]
+                [$this->_table->getAlias() . '.' . $this->getConfig('field') . ' IS NOT' => null]
             );
     }
 
@@ -49,26 +50,32 @@ class DiscardableBehavior extends Behavior
     {
         return $query
             ->where(
-                [$this->_table->getAlias() . '.' . $this->_getFieldExpression() . ' IS' => null]
+                [$this->_table->getAlias() . '.' . $this->getConfig('field') . ' IS' => null]
             );
     }
 
     /**
-     * @param EntityInterface $entity
+     * @param $conditions
      * @return bool
      */
-    public function isDiscarded(EntityInterface $entity)
+    public function isDiscarded($conditions)
     {
-        return (bool)$entity->{$this->_getFieldExpression()};
+        $conditions = Hash::merge(
+            $conditions, [$this->_table->getAlias() . '.' . $this->getConfig('field') . ' IS NOT' => null]
+        );
+        return $this->_table->exists($conditions);
     }
 
     /**
-     * @param EntityInterface $entity
+     * @param $conditions
      * @return bool
      */
-    public function isUndiscarded(EntityInterface $entity)
+    public function isUndiscarded($conditions)
     {
-        return !$this->isDiscarded($entity);
+        $conditions = Hash::merge(
+            $conditions, [$this->_table->getAlias() . '.' . $this->getConfig('field') . ' IS' => null]
+        );
+        return $this->_table->exists($conditions);
     }
 
     /**
@@ -77,11 +84,7 @@ class DiscardableBehavior extends Behavior
      */
     public function discard(EntityInterface $entity)
     {
-        if ($this->isDiscarded($entity)) {
-            return;
-        }
-
-        $entity->set($this->_getFieldExpression(), $this->_timestamp());
+        $entity->set($this->getConfig('field'), $this->_timestamp());
         return $this->_table->save($entity);
     }
 
@@ -91,11 +94,7 @@ class DiscardableBehavior extends Behavior
      */
     public function undiscard(EntityInterface $entity)
     {
-        if ($this->isUndiscarded($entity)) {
-            return;
-        }
-
-        $entity->set($this->_getFieldExpression(), null);
+        $entity->set($this->getConfig('field'), null);
         return $this->_table->save($entity);
     }
 
@@ -105,13 +104,5 @@ class DiscardableBehavior extends Behavior
     protected function _timestamp()
     {
         return new Time();
-    }
-
-    /**
-     * @return mixed
-     */
-    protected function _getFieldExpression()
-    {
-        return $this->getConfig('field');
     }
 }
