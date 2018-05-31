@@ -6,6 +6,8 @@
  * has been installed as a dependency of the plugin, or the plugin is itself
  * installed as a dependency of an application.
  */
+use Cake\Core\Plugin;
+
 $findRoot = function ($root) {
     do {
         $lastRoot = $root;
@@ -28,3 +30,5 @@ if (file_exists($root . '/config/bootstrap.php')) {
     return;
 }
 require $root . '/vendor/cakephp/cakephp/tests/bootstrap.php';
+
+Plugin::load('Discard', ['path' => dirname(dirname(__FILE__)) . DS]);

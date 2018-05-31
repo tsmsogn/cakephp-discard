@@ -1,6 +1,7 @@
 <?php
 namespace Discard\Test\TestCase\Model\Behavior;
 
+use Cake\ORM\TableRegistry;
 use Cake\TestSuite\TestCase;
 use Discard\Model\Behavior\DiscardableBehavior;
 
@@ -11,11 +12,19 @@ class DiscardableBehaviorTest extends TestCase
 {
 
     /**
-     * Test subject
+     * Fixtures
      *
-     * @var \Discard\Model\Behavior\DiscardableBehavior
+     * @var array
      */
-    public $Discardable;
+    public $fixtures = [
+        'plugin.discard.products',
+    ];
+
+
+    /**
+     * @var \Discard\Test\TestApp\Model\Table\ProductsTable
+     */
+    public $Products;
 
     /**
      * setUp method
@@ -25,7 +34,11 @@ class DiscardableBehaviorTest extends TestCase
     public function setUp()
     {
         parent::setUp();
-        $this->Discardable = new DiscardableBehavior();
+
+        TableRegistry::clear();
+        $this->Products = TableRegistry::get('Products', [
+            'className' => 'Discard\Test\TestApp\Model\Table\ProductsTable'
+        ]);
     }
 
     /**
@@ -35,18 +48,55 @@ class DiscardableBehaviorTest extends TestCase
      */
     public function tearDown()
     {
-        unset($this->Discardable);
+        unset($this->Products);
 
         parent::tearDown();
     }
 
-    /**
-     * Test initial setup
-     *
-     * @return void
-     */
-    public function testInitialization()
+    public function testFindDiscarded()
     {
-        $this->markTestIncomplete('Not implemented yet.');
+        $discarded = $this->Products
+            ->find('discarded')
+            ->toArray();
+
+        $this->assertCount(1, $discarded);
+        $this->assertEquals(2, $discarded[0]->id);
     }
+
+    public function testFindKept()
+    {
+        $kept = $this->Products
+            ->find('kept')
+            ->toArray();
+
+        $this->assertCount(1, $kept);
+        $this->assertEquals(1, $kept[0]->id);
+    }
+
+    public function testDiscard()
+    {
+        $mug = $this->Products->get(1);
+        $this->Products->discard($mug);
+
+        $this->assertTrue($this->Products->isDiscarded(['id' => 1]));
+    }
+
+    public function testUndiscard()
+    {
+        $tote = $this->Products->get(2);
+        $this->Products->undiscard($tote);
+
+        $this->assertTrue($this->Products->isUndiscarded(['id' => 2]));
+    }
+
+    public function testIsDiscarded()
+    {
+        $this->assertTrue($this->Products->isDiscarded(['id' => 2]));
+    }
+
+    public function testIsUndiscarded()
+    {
+        $this->assertTrue($this->Products->isUndiscarded(['id' => 1]));
+    }
+
 }
