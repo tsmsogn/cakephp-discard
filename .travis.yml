@@ -28,6 +28,9 @@ matrix:
     - php: 7.0
       env: PHPCS=1
 
+  allow_failures:
+    - env: PHPCS=1
+
 before_install:
   - if [ $DB = 'mysql' ]; then mysql -u root -e 'CREATE DATABASE test_myapp;'; fi
   - if [ $DB = 'pgsql' ]; then psql -c 'CREATE DATABASE test_myapp;' -U postgres; fi
